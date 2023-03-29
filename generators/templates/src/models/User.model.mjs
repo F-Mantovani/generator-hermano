@@ -11,6 +11,7 @@ const userSchema = {
   password: {
     type: String,
     required: true,
+    select: false,
   },
   email: {
     type: String,

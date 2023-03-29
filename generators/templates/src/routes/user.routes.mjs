@@ -1,7 +1,7 @@
-import userController from "../database/controllers/user.controllers.mjs";
+import userController from "../controllers/user.controllers.mjs";
 
 import { Router } from "express";
-import { verifyToken } from "../database/controllers/utils/tokenHandler.mjs";
+import { verifyToken } from "../middleware/isAuthenticated.mjs";
 
 const router = Router()
 

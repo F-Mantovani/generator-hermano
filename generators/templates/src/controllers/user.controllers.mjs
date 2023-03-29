@@ -1,8 +1,8 @@
 import User from '../services/user.services.mjs'
-import throwError from './utils/throwError.mjs'
-import passwordHandler from './utils/passwordHandlers.mjs'
-import inputChecker from './utils/inputChecker.mjs'
-import { generateToken, verifyToken } from './utils/tokenHandler.mjs'
+import throwError from '../utils/throwError.mjs'
+import passwordHandler from '../utils/passwordHandlers.mjs'
+import inputChecker from '../utils/inputChecker.mjs'
+import tokenHandler from '../utils/tokenHandler.mjs'
 
 const userController = {
 	async signup(req, res, next) {
@@ -26,7 +26,7 @@ const userController = {
 
 			const userFromDB = await User.findOne(username, email)
 
-			throwError(userFromDB, 'user already exists', 'signup', 400)
+			throwError(userFromDB, 'User already exists', 'signup', 400)
 
 			const passwordHashed = await passwordHandler.createPasswordHash(password)
 
@@ -39,7 +39,13 @@ const userController = {
 
 			const newUser = await User.createUser(createUser)
 
-			res.status(200).json(newUser)
+			const user = {
+				username: newUser.username,
+				email: newUser.email,
+				usernameToDisplay: newUser.usernameToDisplay,
+			}
+
+			res.status(200).json(user)
 		} catch (error) {
 			next(error)
 		}
@@ -48,29 +54,33 @@ const userController = {
 	async login(req, res, next) {
 		const login = req.body.username || req.body.email
 		const { password } = req.body
-		const loginType = login.includes('@')
-
+		
 		try {
+			if (!login || !password) {
+				throwError(true, 'All fields are required to login', 'login', 400)
+			}
+			
+			const loginType = login.includes('@')
+
 			let userFromDB
 			if (loginType) {
-				userFromDB = await User.findOne(null, login)
+				userFromDB = await User.findOne(null, login).select('+password')
 			} else {
-				userFromDB = await User.findOne(login, null)
+				userFromDB = await User.findOne(login, null).select('+password')
 			}
 			throwError(!userFromDB, `User not found or incorrect password`, `login`, 400)
 
 			const passwordChecked = await passwordHandler.verifyPassword(password, userFromDB.password)
 			throwError(!passwordChecked, `User not found or incorrect password`, `login`, 400)
 
-
 			const loggedUser = {
 				username: userFromDB.usernameToDisplay,
-				email: userFromDB.email
+				email: userFromDB.email,
 			}
-			
-			const token = generateToken(loggedUser)
 
-			res.status(200).json(token)
+			const token = tokenHandler.generate(loggedUser)
+
+			res.status(200).json({ token })
 		} catch (error) {
 			next(error)
 		}
@@ -82,7 +92,7 @@ const userController = {
 		} catch (error) {
 			next(error)
 		}
-	}
+	},
 }
 
 export default userController

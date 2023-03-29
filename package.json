@@ -1,6 +1,6 @@
 {
   "name": "generator-hermano",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "This is hermano's yeoman generator for express",
   "main": "index.js",
   "scripts": {

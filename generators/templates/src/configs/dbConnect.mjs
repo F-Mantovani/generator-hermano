@@ -3,8 +3,7 @@ import mongoose from "mongoose";
 const MONGO_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/test'
 
 export async function dbConnect() {
-  const dbConnect = await mongoose.connect(MONGO_URI)
-  console.log(`Database connected to ${dbConnect.connections[0].name}`)
+  return mongoose.connect(MONGO_URI)
 }
 
 export async function disconnect() {
